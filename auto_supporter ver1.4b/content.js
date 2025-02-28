@@ -850,50 +850,37 @@ if (!document.getElementById('floating-window')) {
         selectedInterval = parseInt(event.target.value);
     });
 
-    // // 開始發送訊息
-    // document.getElementById('start-sending').addEventListener('click', () => {
-    //     if (!intervalId) {
-    //         intervalId = setInterval(() => {
-    //             const message = getRandomMessage();
-    //             sendMessage(message);
-    //         }, selectedInterval);
-    //         document.getElementById('status').innerText = '發送中';
-    //         document.getElementById('interval-select').disabled = true;
-    //         document.getElementById('start-sending').disabled = true;
-    //         document.getElementById('stop-sending').disabled = false;
-            
-    //         button.innerHTML = '<span style="color: lime;">▼</span>';
-    //         button.style.border = '3px solid lime';
-    //         document.querySelector(".title_color").style.backgroundColor = "lime"; 
-    //     }
-    // });
-
     // 開始發送訊息
-    document.getElementById('start-sending').addEventListener('click', () => {
+    document.getElementById('start-sending').addEventListener('click', startSending);
+
+    function startSending() {
         if (!intervalId) {
             window.time_counter = 180; // 重置倒數計時
             document.getElementById('timer-display').innerText = window.time_counter; // 更新 UI
-
+    
             intervalId = setInterval(() => {
                 const message = getRandomMessage();
                 sendMessage(message);
             }, selectedInterval);
-
+    
             countdownId = setInterval(() => {
                 window.time_counter--;
                 document.getElementById('timer-display').innerText = window.time_counter; // 更新倒數顯示
                 if (window.time_counter <= 0) {
                     stopSending(); // 倒數結束時自動停止
                 }
-            }, 1000); // 每秒減少 1
-
+            }, 1000);
+    
             document.getElementById('status').innerText = '發送中';
             document.getElementById('interval-select').disabled = true;
             document.getElementById('start-sending').disabled = true;
             document.getElementById('stop-sending').disabled = false;
-        }
-    });
 
+            button.innerHTML = '<span style="color: lime;">▼</span>';
+            button.style.border = '3px solid lime';
+            document.querySelector(".title_color").style.backgroundColor = "lime"; 
+        }
+    }
 
     // 停止發送訊息
     document.getElementById('stop-sending').addEventListener('click', stopSending);
@@ -911,51 +898,19 @@ if (!document.getElementById('floating-window')) {
         document.getElementById('stop-sending').disabled = true;
 
         document.getElementById('timer-display').innerText = "0"; // 倒數結束時顯示 0
+
+        button.innerHTML = '<span style="color: #F5D300;">▼</span>';
+        button.style.border = '3px solid #F5D300';
+        document.querySelector(".title_color").style.backgroundColor = "#F5D300"; 
     }
 
-    // // 停止發送訊息
-    // document.getElementById('stop-sending').addEventListener('click', () => {
-    //     if (intervalId) clearInterval(intervalId);
-    //     intervalId = null;
-    //     document.getElementById('status').innerText = '停止中';
-    //     document.getElementById('interval-select').disabled = false;
-    //     document.getElementById('start-sending').disabled = false;
-    //     document.getElementById('stop-sending').disabled = true;
-
-    //     button.innerHTML = '<span style="color: #F5D300;">▼</span>';
-    //     button.style.border = '3px solid #F5D300';
-    //     document.querySelector(".title_color").style.backgroundColor = "#F5D300"; 
-    // });
-
-    // 監聽按鍵事件，檢查是否按下 Ctrl + Space 並切換開始與停止
+    // 監聽按鍵事件，檢查是否按下 Ctrl + Space
     document.addEventListener('keydown', (event) => {
         if (event.ctrlKey && event.code === 'Space') {
             if (!intervalId) {
-                // 如果沒有在發送，開始發送訊息
-                intervalId = setInterval(() => {
-                    const message = getRandomMessage();
-                    sendMessage(message);
-                }, selectedInterval);
-                document.getElementById('status').innerText = '發送中';
-                document.getElementById('interval-select').disabled = true;
-                document.getElementById('start-sending').disabled = true;
-                document.getElementById('stop-sending').disabled = false;
-
-                button.innerHTML = '<span style="color: lime;">▼</span>';
-                button.style.border = '3px solid lime';
-                document.querySelector(".title_color").style.backgroundColor = "lime"; 
+                startSending();
             } else {
-                // 如果正在發送，停止發送訊息
-                if (intervalId) clearInterval(intervalId);
-                intervalId = null;
-                document.getElementById('status').innerText = '停止中';
-                document.getElementById('interval-select').disabled = false;
-                document.getElementById('start-sending').disabled = false;
-                document.getElementById('stop-sending').disabled = true;
-
-                button.innerHTML = '<span style="color: #F5D300;">▼</span>';
-                button.style.border = '3px solid #F5D300';
-                document.querySelector(".title_color").style.backgroundColor = "#F5D300"; 
+                stopSending();
             }
         }
     });
