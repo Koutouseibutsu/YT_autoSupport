@@ -19,9 +19,12 @@ const translations = {
         addQuickMessageFromChat: "從發送欄讀取訊息",
         closeWindow: "關閉視窗",
         placeholder: "按 Enter 新增隨機訊息",
-        quickMessagePlaceholder: "按 Enter 新增快捷訊息" ,
+        quickMessagePlaceholder: "按 Enter 新增快捷訊息",
         sendButtonText: "發送", 
         deleteButtonText: "刪除",
+        countdownTitle: "倒數計時：",
+        timerUnit: "秒",
+        enableClapFeature: "遇到 👏👏👏 停止發送",
         options: {
             "5000": "5 秒",
             "10000": "10 秒",
@@ -30,7 +33,7 @@ const translations = {
             "30000": "30 秒",
             "60000": "60 秒"
         },
-        disclaimer: "免責聲明:本程式不對任何使用上所造成的結果負責",
+        disclaimer: "免責聲明:本程式不對任何使用上所造成的結果負責"
     },
     "en": {
         title: "Auto Cheer Settings(Beta)",
@@ -54,6 +57,9 @@ const translations = {
         quickMessagePlaceholder: "Press Enter to Add Quick Message",
         sendButtonText: "Send", 
         deleteButtonText: "Delete",
+        countdownTitle: "Countdown: ",
+        timerUnit: "seconds",
+        enableClapFeature: "Stop sending when 👏👏👏 appears",
         options: {
             "5000": "5 seconds",
             "10000": "10 seconds",
@@ -86,6 +92,9 @@ const translations = {
         quickMessagePlaceholder: "Enterキーでクイックメッセージを追加",
         sendButtonText: "送信",  
         deleteButtonText: "削除",
+        countdownTitle: "カウントダウン: ",
+        timerUnit: "秒",
+        enableClapFeature: "👏👏👏 が表示されたら送信を停止",
         options: {
             "5000": "5秒",
             "10000": "10秒",
@@ -123,6 +132,9 @@ if (!window.hasOwnProperty("time_counter")) {
 }
 if (!window.hasOwnProperty("countdownId ")) {
     window.countdownId  = null;
+}
+if (!window.hasOwnProperty("savedLanguage")) {
+    window.nowlang = localStorage.getItem('language') || 'zh-TW';  // 預設為繁體中文
 }
 
 (function() {
@@ -178,7 +190,7 @@ if (!window.hasOwnProperty("countdownId ")) {
             let imgElement = emoji.cloneNode(true); // 創建 emoji 的副本
 
             // 修改 img 元素的屬性
-            console.log("before imgElement ", imgElement);
+            // console.log("before imgElement ", imgElement);
             imgElement.className = 'emoji yt-formatted-string style-scope yt-live-chat-text-input-field-renderer copyable'; // 更新 class
             imgElement.alt = emojiAlt; // 保留原來的 alt 屬性
             // const emojiId = imgElement.id;
@@ -190,7 +202,7 @@ if (!window.hasOwnProperty("countdownId ")) {
             imgElement.removeAttribute('role');
             imgElement.setAttribute('data-emoji-id', imgElement.id);
             imgElement.removeAttribute('id'); 
-            console.log("after imgElement ", imgElement);
+            // console.log("after imgElement ", imgElement);
 
             // emojiToImageMap.set(emojiAlt, emoji); // Store the alt text and corresponding image node
             emojiToImageMap.set(emojiAlt, imgElement);
@@ -463,6 +475,8 @@ if (!document.getElementById('floating-window')) {
             <button class="button" id="stop-sending" disabled>結束發送</button>
             <p class="status_title">目前狀態：<span id="status">停止中</span>   <span style="font-size:10px;"> (ctrl + space)</span> </p> 
             <p class="status_title">倒數計時：<span id="timer-display">180</span> 秒</p>
+            <input type="checkbox" id="enableClapFeature">
+            <label for="enableClapFeature">遇到 👏👏👏 停止發送</label>
         </div>
         <div class="area2">
             <h3 class="menu_title">快捷選單</h3>
@@ -488,6 +502,7 @@ if (!document.getElementById('floating-window')) {
                 6GsRmgMsttXUh664ee4bbTTw2zhjxrPBVzSPMUmdRQy9
                 </p>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?data=6GsRmgMsttXUh664ee4bbTTw2zhjxrPBVzSPMUmdRQy9&size=140x140&color=black&bgcolor=white&margin=10">
+                <!-- 
                 <br><br>
                 <br><br>
                 <p><strong style="color: #F5D300; font-size:16px;">ETH (Arbitrum One) Wallet Address</strong><br> 
@@ -495,7 +510,7 @@ if (!document.getElementById('floating-window')) {
                 </p>
                 <img src="https://api.qrserver.com/v1/create-qr-code/?data=0x3282128ac76E5D6a304d87E9d392f80BBfEE0027&size=140x140&color=black&bgcolor=white&margin=10">
                 <br><br>
-                <br><br>
+                <br><br> -->
             </div>
         </div>
     </div>
@@ -688,10 +703,11 @@ if (!document.getElementById('floating-window')) {
         document.getElementById("get-quick-message-from-chatroom").textContent = translations[lang].addQuickMessageFromChat;
         document.getElementById("close-window").textContent = translations[lang].closeWindow;
         document.getElementById("disclaimer").textContent = translations[lang].disclaimer;
+        document.getElementById("timer-display").nextSibling.textContent = " " + translations[lang].timerUnit;
+        document.querySelector("label[for='enableClapFeature']").textContent = translations[lang].enableClapFeature;
         
         // 更新狀態文字
-        document.getElementById("status").innerText =
-            intervalId ? translations[lang].sending : translations[lang].stopped;
+        document.getElementById("status").innerText = intervalId ? translations[lang].sending : translations[lang].stopped;
 
         // 更新輸入框 placeholder
         document.getElementById("message-input").placeholder = translations[lang].placeholder;
@@ -712,6 +728,7 @@ if (!document.getElementById('floating-window')) {
         currentLanguage = savedLanguage;
         updateLanguage(savedLanguage);
         langSelector.value = savedLanguage;
+        window.nowlang = savedLanguage;
     });
 
     // 在語言選擇時儲存語言設置
@@ -719,6 +736,7 @@ if (!document.getElementById('floating-window')) {
         const selectedLang = event.target.value;
         localStorage.setItem('language', selectedLang);  // 儲存選擇的語言
         updateLanguage(selectedLang);
+        window.nowlang = selectedLang;
     });
 
     // 關閉視窗
@@ -733,7 +751,7 @@ if (!document.getElementById('floating-window')) {
         floatWindow1.remove();
     });
 
-    // 關閉視窗
+    // 顯示/隱藏錢包地址
     document.getElementById('donate-me').addEventListener('click', () => {
         const walletDiv = document.getElementById('wallet-info');
         const donateButton = document.getElementById('donate-me');
@@ -859,8 +877,59 @@ if (!document.getElementById('floating-window')) {
             document.getElementById('timer-display').innerText = window.time_counter; // 更新 UI
     
             intervalId = setInterval(() => {
-                const message = getRandomMessage();
-                sendMessage(message);
+                
+                let containsClapEmoji = false; // 用來標記是否找到 👏👏👏
+                if ( document.getElementById('enableClapFeature').checked) {
+                    // 讀取聊天室訊息
+                    const chatMessages = document.querySelectorAll('yt-live-chat-text-message-renderer');
+                    // 取得倒數 3 條訊息
+                    const lastMessages = Array.from(chatMessages).slice(-3);
+                    
+                    lastMessages.forEach((message) => {
+                        const authorName = message.querySelector('#author-name')?.textContent || '未知使用者';
+                        // 取得訊息內容
+                        const messageElement = message.querySelector('#message');
+                        let messageContent = "";
+                        if (messageElement) {
+                            // 遍歷所有子節點（文字與圖片）
+                            messageElement.childNodes.forEach(node => {
+                                if (node.nodeType === Node.TEXT_NODE) {
+                                    // 純文字部分
+                                    messageContent += node.textContent;
+                                } else if (node.nodeType === Node.ELEMENT_NODE && node.tagName === "IMG") {
+                                    // 判斷是一般 emoji 還是 YouTube 貼圖
+                                    if (node.hasAttribute("data-emoji-id")) {
+                                        // YT 貼圖
+                                        messageContent += `:${node.alt}:`;  // 加上 `:貼圖名稱:`
+                                    } else {
+                                        // 一般 emoji
+                                        messageContent += node.alt || "[圖片]";
+                                    }
+                                }
+                            });
+                        } else {
+                            messageContent = "無內容";
+                        }
+                
+                        const timestamp = message.querySelector('#timestamp')?.textContent || '無時間';
+                        console.log(`[${timestamp}] ${authorName}: ${messageContent}`);
+                        if (messageContent.includes("👏👏👏")) {
+                            containsClapEmoji = true;
+                        }
+                    });
+                    if (containsClapEmoji) {
+                        console.log("發現 👏👏👏，停止發送訊息！");
+                        stopSending();
+                        
+                    }
+                }
+                
+                
+                if (containsClapEmoji == false) {
+                    const message = getRandomMessage();
+                    sendMessage(message);
+                }
+
             }, selectedInterval);
     
             countdownId = setInterval(() => {
@@ -869,8 +938,9 @@ if (!document.getElementById('floating-window')) {
                 if (window.time_counter <= 0) {
                     stopSending(); // 倒數結束時自動停止
                 }
+
             }, 1000);
-    
+            
             document.getElementById('status').innerText = '發送中';
             document.getElementById('interval-select').disabled = true;
             document.getElementById('start-sending').disabled = true;
@@ -879,6 +949,8 @@ if (!document.getElementById('floating-window')) {
             button.innerHTML = '<span style="color: lime;">▼</span>';
             button.style.border = '3px solid lime';
             document.querySelector(".title_color").style.backgroundColor = "lime"; 
+
+            document.getElementById("status").innerText = intervalId ? translations[nowlang].sending : translations[nowlang].stopped;
         }
     }
 
@@ -902,6 +974,8 @@ if (!document.getElementById('floating-window')) {
         button.innerHTML = '<span style="color: #F5D300;">▼</span>';
         button.style.border = '3px solid #F5D300';
         document.querySelector(".title_color").style.backgroundColor = "#F5D300"; 
+
+        document.getElementById("status").innerText = intervalId ? translations[nowlang].sending : translations[nowlang].stopped;
     }
 
     // 監聽按鍵事件，檢查是否按下 Ctrl + Space
