@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "YT Chatroom Auto Support",
+  "version": "1.6",
+  "description": "Only for Youtube Chatroom",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/live_chat*"],
+      "exclude_matches": ["https://www.youtube.com/watch?*"],
+      "js": ["lodash.min.js",
+            "content/translations.js",
+            "content/chatroom.js",
+            "content/emoji_util.js", 
+            "content/ui_floating_window.js",
+            "content/message_logic.js",
+            "content/send_controller.js",
+            "content/content.js"],
+      "all_frames": true
+    }
+  ],
+  "icons": {
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_icon": {
+      "128": "icons/icon128.png"
+    }
+  }
+}
